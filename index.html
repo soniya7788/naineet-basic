@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Verification</title>
+</head>
+<body>
+
+    <h1>Resume Verification</h1>
+
+    <p>Enter the candidate's Verification ID or Short Code.</p>
+
+    <form id="verificationForm">
+        <input
+            type="text"
+            id="code"
+            placeholder="Enter Verification ID or Short Code"
+            required
+        >
+
+        <button type="submit">View Profile</button>
+    </form>
+
+    <p id="message"></p>
+
+    <script>
+        document.getElementById("verificationForm").addEventListener(
+            "submit",
+            function(event) {
+                event.preventDefault();
+
+                let code = document.getElementById("code").value.trim();
+                const message = document.getElementById("message");
+
+                if (!code) {
+                    message.textContent = "Please enter a verification code.";
+                    return;
+                }
+
+                // Demo mapping for the known candidate
+                if (code.toUpperCase() === "NTV-2026-0002") {
+                    code = "zjmm6bb";
+                }
+
+                // Open the profile using the short code in the URL path
+                window.location.href =
+                    "/profile.html/" + encodeURIComponent(code);
+            }
+        );
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Verified Candidate Profile</title>
+</head>
+
+<body>
+
+    <h1>Verified Candidate Profile</h1>
+
+    <p id="message">Loading candidate details...</p>
+
+    <div id="profile" hidden>
+
+        <h2>Candidate Details</h2>
+
+        <p>
+            Verification ID:
+            <span id="verificationNumber"></span>
+        </p>
+
+        <p>
+            Short Code:
+            <span id="shortCode"></span>
+        </p>
+
+        <p>
+            Name:
+            <span id="candidateName"></span>
+        </p>
+
+        <p>
+            Headline:
+            <span id="headline"></span>
+        </p>
+
+        <p>
+            Status:
+            <span id="status"></span>
+        </p>
+
+        <p>
+            Verification Date:
+            <span id="verificationDate"></span>
+        </p>
+
+        <p>
+            Valid Until:
+            <span id="validTill"></span>
+        </p>
+
+        <h2>Qualification</h2>
+
+        <p>
+            Degree:
+            <span id="degree"></span>
+        </p>
+
+        <p>
+            Branch:
+            <span id="branch"></span>
+        </p>
+
+        <p>
+            Institution:
+            <span id="institution"></span>
+        </p>
+
+        <h2>Skills</h2>
+
+        <ul id="skills"></ul>
+
+        <h2>Education</h2>
+
+        <div id="education"></div>
+
+        <h2>Work Experience</h2>
+
+        <p>
+            Total Experience:
+            <span id="totalExperience"></span>
+        </p>
+
+        <div id="experience"></div>
+
+        <h2>Internship</h2>
+
+        <p>
+            Total Internship:
+            <span id="totalInternship"></span>
+        </p>
+
+        <div id="internship"></div>
+
+        <h2>Qualified Roles</h2>
+
+        <ul id="qualifiedRoles"></ul>
+
+        <h2>Verification Checks</h2>
+
+        <ul id="checks"></ul>
+
+    </div>
+
+    <script>
+        const API =
+            "https://verify.naineet.in/api/v1/auth/verify/code/";
+
+        // Extract the short code from /profile.html/zjmm6bb
+        function getShortCode() {
+            const pathParts = window.location.pathname.split("/");
+            const code = pathParts[pathParts.length - 1];
+
+            return decodeURIComponent(code);
+        }
+
+        // Display a value safely
+        function setText(id, value) {
+            document.getElementById(id).textContent =
+                value ?? "Not available";
+        }
+
+        // Create list items safely
+        function displayList(elementId, items, emptyMessage) {
+            const list = document.getElementById(elementId);
+
+            list.replaceChildren();
+
+            if (!Array.isArray(items) || items.length === 0) {
+                const li = document.createElement("li");
+                li.textContent = emptyMessage;
+                list.appendChild(li);
+                return;
+            }
+
+            items.forEach(function(item) {
+                const li = document.createElement("li");
+                li.textContent = item;
+                list.appendChild(li);
+            });
+        }
+
+        // Display education details
+        function displayEducation(education) {
+            const container = document.getElementById("education");
+            container.replaceChildren();
+
+            if (!Array.isArray(education) || education.length === 0) {
+                container.textContent = "No education details available.";
+                return;
+            }
+
+            education.forEach(function(item) {
+                const section = document.createElement("div");
+
+                const degree = document.createElement("p");
+                degree.textContent =
+                    "Degree: " + (item.degree || "Not available");
+
+                const branch = document.createElement("p");
+                branch.textContent =
+                    "Branch: " + (item.branch || "Not available");
+
+                const institution = document.createElement("p");
+                institution.textContent =
+                    "Institution: " + (item.institution || "Not available");
+
+                const years = document.createElement("p");
+                years.textContent =
+                    "Duration: " +
+                    (item.startYear ?? "Not available") +
+                    " - " +
+                    (item.endYear ?? "Not available");
+
+                section.append(degree, branch, institution, years);
+                container.appendChild(section);
+            });
+        }
+
+        // Display work experience or internship items
+        function displayExperience(elementId, items) {
+            const container = document.getElementById(elementId);
+            container.replaceChildren();
+
+            if (!Array.isArray(items) || items.length === 0) {
+                container.textContent = "No records available.";
+                return;
+            }
+
+            items.forEach(function(item) {
+                const section = document.createElement("div");
+
+                const company = document.createElement("p");
+                company.textContent =
+                    "Company: " + (item.company || "Not available");
+
+                const designation = document.createElement("p");
+                designation.textContent =
+                    "Designation: " + (item.designation || "Not available");
+
+                const duration = document.createElement("p");
+                duration.textContent =
+                    "Duration: " +
+                    (item.durationMonths ?? 0) +
+                    " months";
+
+                section.append(company, designation, duration);
+                container.appendChild(section);
+            });
+        }
+
+        // Load candidate information from the API
+        async function loadProfile() {
+            const message = document.getElementById("message");
+
+            try {
+                const code = getShortCode();
+
+                if (!code || code.toLowerCase() === "profile.html") {
+                    throw new Error("No candidate short code was provided.");
+                }
+
+                console.log("Short Code:", code);
+
+                message.textContent = "Fetching candidate details...";
+
+                const response = await fetch(
+                    API + encodeURIComponent(code)
+                );
+
+                if (!response.ok) {
+                    throw new Error(
+                        "Candidate not found or API request failed. HTTP status: " +
+                        response.status
+                    );
+                }
+
+                const data = await response.json();
+
+                console.log("API Response:", data);
+
+                // Display candidate details
+                setText("verificationNumber", data.verificationNumber);
+                setText("shortCode", data.shortCode);
+                setText("candidateName", data.candidateName);
+                setText("headline", data.headline);
+                setText("status", data.status);
+                setText("verificationDate", data.verificationDate);
+                setText("validTill", data.validTill);
+
+                // Qualification
+                const qualification = data.qualification || {};
+
+                setText("degree", qualification.degree);
+                setText("branch", qualification.branch);
+                setText("institution", qualification.institution);
+
+                // Skills
+                displayList(
+                    "skills",
+                    data.skills,
+                    "No skills available."
+                );
+
+                // Education
+                displayEducation(data.education);
+
+                // Work experience
+                const experience = data.experience || {};
+
+                setText("totalExperience", experience.totalLabel);
+
+                displayExperience(
+                    "experience",
+                    experience.items
+                );
+
+                // Internship
+                const internship = data.internship || {};
+
+                setText("totalInternship", internship.totalLabel);
+
+                displayExperience(
+                    "internship",
+                    internship.items
+                );
+
+                // Qualified roles
+                displayList(
+                    "qualifiedRoles",
+                    data.qualifiedRoles,
+                    "No qualified roles available."
+                );
+
+                // Verification checks
+                const checks = data.checks || {};
+
+                const checkLabels = {
+                    identityVerified: "Identity Verified",
+                    academicDetailsVerified: "Academic Details Verified",
+                    workExperienceVerified: "Work Experience Verified",
+                    skillsValidated: "Skills Validated"
+                };
+
+                const checkItems = Object.keys(checkLabels).map(function(key) {
+                    return checkLabels[key] + ": " +
+                        (checks[key] === true ? "Yes" :
+                        checks[key] === false ? "No" : "Not available");
+                });
+
+                displayList("checks", checkItems, "No verification checks available.");
+
+                // Show the profile after the data has loaded
+                document.getElementById("profile").hidden = false;
+
+                message.textContent = "Candidate profile loaded successfully.";
+
+            } catch (error) {
+                console.error("Profile loading error:", error);
+
+                message.textContent =
+                    "Unable to load the candidate profile. " + error.message;
+
+                document.getElementById("profile").hidden = true;
+            }
+        }
+
+        loadProfile();
+    </script>
+
+</body>
+</html>
